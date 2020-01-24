@@ -2,13 +2,9 @@ import re
 import sys
 import os.path
 
-class predict:
-	def __init__(self, b0, b1):
-		self.b0 = b0
-		self.b1 = b1
-
-	def getEstimateValue(self, mileage):
-		price = self.b0 + (self.b1 * mileage)
+class predictClass:
+	def getEstimateValue(self, mileage, b0, b1):
+		price = b0 + (b1 * mileage)
 		return price
 
 class fileManip:
@@ -49,8 +45,11 @@ def predictPrice():
 		m = f.getSlopeValue()
 		p = f.getInterceptValue()
 	try:
-		p = predict(float(p), float(m))
-		price = p.getEstimateValue(float(mileage))
+		pr = predictClass()
+		price = pr.getEstimateValue(float(mileage), float(p), float(m))
 		print("Estimate price for this vehicule would be", price)
 	except Exception as e:
 		print("\x1b[91merror: ", str(e), "\x1b[0m")
+
+if __name__ == "__main__":
+	predictPrice()	
