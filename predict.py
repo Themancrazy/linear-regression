@@ -32,9 +32,6 @@ class fileManip:
 			return False
 
 def predictPrice():
-	if len(sys.argv) != 1:
-		print("Too many arguments given as parameter.")
-		exit(1)
 	mileage = input("Mileage of car: ")
 	f = fileManip()
 	if (f.fileExist() is False):

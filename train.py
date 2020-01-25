@@ -8,6 +8,10 @@ from predict import predictClass
 from predict import fileManip
 import pandas as pd
 
+#-----------------------------------------------------------------------
+#	Class used to modify slope and intercept at every iteration
+#-----------------------------------------------------------------------
+
 class GDA:
 	def __init__(self, b0, b1):
 		self.b0 = b0
@@ -34,18 +38,32 @@ class GDA:
 
 	def setb1(self, b1):
 		self.b1 = b1
+#-----------------------------------------------------------------------
+#	Class used to plot and scatter graphs (error graph + regression line)
+#-----------------------------------------------------------------------
 
 class Graph:
-	def __init__(self):
+	def __init__(self, plt):
+		self.plt = plt
 		pass
-	def createRegressionGraph(self):
-		pass
-	def createErrorGraph(self):
-		pass
-	def updateRegressionGraph(self):
-		pass
-	def updateErrorGraph(self):
-		pass
+	def createRegressionGraph(self, mi, pr, m, p):
+		y = (m * mi) + p
+		self.plt.figure(1)
+		self.plt.plot(mi, y, label='regression line', color='r')
+		self.plt.scatter(mi, pr, label='observations', color='b')
+		self.plt.xlabel('Miles')
+		self.plt.ylabel('Price')
+		self.plt.title('Linear Regression')
+		self.plt.legend()
+
+	def createErrorGraph(self, x, y):
+		self.plt.figure(2)
+		self.plt.plot(x, y, label='Precision Curve', color='r')
+		self.plt.xlabel('Learn Time (Nb of iterations)')
+		self.plt.ylabel('Model\'s precision (Loss function)')
+		self.plt.title('Precision of model over time')
+		self.plt.legend()
+		self.plt.show()
 
 #-----------------------------------------------------------------------
 #	This function normalizes the miles values to be contained between
@@ -68,7 +86,7 @@ def lossFunction(pr, miles, prices, gda):
 	SSE = 0
 	for m, p in zip(miles, prices):
 		SSE += (pr.getEstimateValue(m, gda.b0, gda.b1) - p) ** 2
-	print("SSE is", SSE / len(miles))
+	return (SSE / len(miles))
 
 #-----------------------------------------------------------------------
 #	This function is the main function that trains the model using the
@@ -82,27 +100,34 @@ def trainModel():
 	miles = df['km']
 	prices = df['price']
 
-	learningRate = 0.001
+	learningRate = 0.01
 	iterations = int(input("Number of iterations requested: "))
 
 	gda = GDA(0, 0)
-	graph = Graph()
+	graph = Graph(plt)
 	pr = predictClass()
 	f = fileManip()
 
-	if input("Reset slope and intercept values?(y/n) ") == "y":
+	reset = input("Reset slope and intercept values?(y/n) ")
+	if reset == "y":
 		f.writeWeightsInFile(0, 0)
-	graph.createRegressionGraph()
-	graph.createErrorGraph()
-	# lossFunction(pr, normalizedMiles, prices, gda)
-	for _ in range(iterations):
+	elif reset == "n":
+		pass
+	else:
+		print("Error: please enter y or n")
+		exit(1)
+	SSE = []
+	currIter = []
+	for i in range(iterations):
 		tmpB0 = gda.b0GDA(pr, learningRate, prices, normalizedMiles)
 		tmpB1 = gda.b1GDA(pr, learningRate, prices, normalizedMiles)
 		gda.setb0(tmpB0)
 		gda.setb1(tmpB1)
-		graph.updateRegressionGraph()
-		graph.updateErrorGraph()
+		SSE.append(lossFunction(pr, normalizedMiles, prices, gda))
+		currIter.append(i)
 	gda.b1 = gda.b1 / (miles.max() - miles.min())
+	graph.createRegressionGraph(miles, prices, gda.b1, gda.b0)
+	graph.createErrorGraph(currIter, SSE)
 	f.writeWeightsInFile(gda.b0, gda.b1)
 
 if __name__ == "__main__":
