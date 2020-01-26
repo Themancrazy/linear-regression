@@ -103,19 +103,21 @@ def trainModel():
 	learningRate = 0.01
 	iterations = int(input("Number of iterations requested: "))
 
-	gda = GDA(0, 0)
+	f = fileManip()
 	graph = Graph(plt)
 	pr = predictClass()
-	f = fileManip()
 
 	reset = input("Reset slope and intercept values?(y/n) ")
 	if reset == "y":
 		f.writeWeightsInFile(0, 0)
 	elif reset == "n":
-		pass
+		if (f.fileExist() is False):
+			f.writeWeightsInFile(0, 0)
 	else:
 		print("Error: please enter y or n")
 		exit(1)
+	gda = GDA(float(f.getInterceptValue()), float(f.getSlopeValue()))
+
 	SSE = []
 	currIter = []
 	for i in range(iterations):

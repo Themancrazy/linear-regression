@@ -9,24 +9,37 @@ class predictClass:
 
 class fileManip:
 	def writeWeightsInFile(self, b0, b1):
-		f = open('weights.txt', "w+")
+		f = open('weights', "w+")
 		f.write(str(b0) + "\n" + str(b1))
 		f.close()
 
 	def getSlopeValue(self):
-		f = open('weights.txt')
+		f = open('weights')
 		slope = (f.readlines())[1]
 		f.close()
+		try:
+			float(slope)
+		except ValueError:
+			print("\x1b[91mError line 2 is not a valid number.\x1b[0m")
+			exit(1)
 		return slope
 
 	def getInterceptValue(self):
-		f = open('weights.txt')
-		slope = (f.readlines())[0]
+		f = open('weights')
+		intercept = (f.readlines())[0]
 		f.close()
-		return slope
+		try:
+			float(intercept)
+		except ValueError:
+			print("\x1b[91mError line 1 is not a valid number.\x1b[0m")
+			exit(1)
+		return intercept
 
 	def fileExist(self):
-		if os.path.isfile('weights.txt'):
+		if os.path.isfile('weights') and os.path.getsize('weights') > 0:
+			count = len(open('weights').readlines())
+			if count != 2:
+				return False
 			return True
 		else:
 			return False
