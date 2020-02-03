@@ -77,12 +77,22 @@ def normalize(oldM):
 		oldM[i] = float((oldM[i] - mMin) / (mMax - mMin))
 	return oldM
 
-#-----------------------------------------------------------------------
-#	This function calculates the loss cost for the GDA algorithm.
-#	It serves as basis to determine the accuracy of the model.
-#-----------------------------------------------------------------------
+def deNormalize(normY, maxMiles, minMiles):
+    denormY = normY * (maxMiles - minMiles) + minMiles
+    return denormY
 
 def lossFunction(pr, miles, prices, gda):
+	"""This function calculates the loss cost for the GDA algorithm.
+	It serves as basis to determine the accuracy of the model.
+
+	Args:
+		pr: aslkdfjalsdkfja
+		miles: asldkfjalsdfj
+	Return:
+		sse / len
+	raises:
+		No raise
+	"""
 	SSE = 0
 	for m, p in zip(miles, prices):
 		SSE += (pr.getEstimateValue(m, gda.b0, gda.b1) - p) ** 2
@@ -97,8 +107,7 @@ def trainModel():
 	file = r'data.csv'
 	df = pd.read_csv(file)
 	normalizedMiles = normalize(df['km'].astype('float64'))
-	miles = df['km']
-	prices = df['price']
+	normalizedPrice = normalize(df['price'].astype('float64'))
 
 	learningRate = 0.01
 	iterations = int(input("Number of iterations requested: "))
@@ -121,14 +130,14 @@ def trainModel():
 	SSE = []
 	currIter = []
 	for i in range(iterations):
-		tmpB0 = gda.b0GDA(pr, learningRate, prices, normalizedMiles)
-		tmpB1 = gda.b1GDA(pr, learningRate, prices, normalizedMiles)
+		tmpB0 = gda.b0GDA(pr, learningRate, normalizedPrice, normalizedMiles)
+		tmpB1 = gda.b1GDA(pr, learningRate, normalizedPrice, normalizedMiles)
 		gda.setb0(tmpB0)
 		gda.setb1(tmpB1)
-		SSE.append(lossFunction(pr, normalizedMiles, prices, gda))
+		SSE.append(lossFunction(pr, normalizedMiles, normalizedPrice, gda))
 		currIter.append(i)
-	gda.b1 = gda.b1 / (miles.max() - miles.min())
-	graph.createRegressionGraph(miles, prices, gda.b1, gda.b0)
+	# gda.b1 = gda.b1 / (miles.max() - miles.min())
+	graph.createRegressionGraph(normalizedMiles, normalizedPrice, gda.b1, gda.b0)
 	graph.createErrorGraph(currIter, SSE)
 	f.writeWeightsInFile(gda.b0, gda.b1)
 

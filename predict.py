@@ -1,6 +1,8 @@
 import re
 import sys
 import os.path
+import pandas as pd
+import train as norm
 
 class predictClass:
 	def getEstimateValue(self, mileage, b0, b1):
@@ -45,7 +47,14 @@ class fileManip:
 			return False
 
 def predictPrice():
-	mileage = input("Mileage of car: ")
+	file = open("data.csv")
+	df = pd.read_csv(file)
+	mileMax = float(df["km"].max())
+	mileMin = float(df["km"].min())
+	priceMax = float(df["price"].max())
+	priceMin = float(df["price"].min())
+	mileage = float(input("Mileage of car: "))
+	mileage = float((mileage - mileMin) / (mileMax - mileMin))
 	f = fileManip()
 	if (f.fileExist() is False):
 		m = 0
@@ -57,6 +66,7 @@ def predictPrice():
 	try:
 		pr = predictClass()
 		price = pr.getEstimateValue(float(mileage), float(p), float(m))
+		price = norm.deNormalize(price, priceMax, priceMin)
 		print("Estimate price for this vehicule would be", price)
 	except Exception as e:
 		print("\x1b[91merror: ", str(e), "\x1b[0m")
